@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Simple WebXR Scene (Quest 3)</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #111; }
+        canvas { display: block; }
+        #vr-button-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <!-- Container for VR Button, ensures it's easily clickable -->
+    <div id="vr-button-container"></div>
+
+    <!-- Import Map for Three.js modules from CDN -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
+            "three/examples/jsm/": "https://unpkg.com/three@0.163.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <!-- Your WebXR Application -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
