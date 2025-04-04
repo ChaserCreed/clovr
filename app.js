@@ -2,8 +2,8 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
-// CORRECTED: Use default import for MapTiles
-import MapTiles from '@googlemaps/three';
+// CORRECTED: Use namespace import
+import * as GoogleMapsThree from '@googlemaps/three';
 
 // -----------------------------------------------------------------------------
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!! SECURITY WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -28,7 +28,7 @@ let vrButton;
 let controller1, controller2;
 let controllerGrip1, controllerGrip2;
 let controllerModelFactory;
-let mapTiles;
+let mapTiles; // Will hold the MapTiles instance
 let clock;
 
 const playerVelocity = new THREE.Vector3();
@@ -92,9 +92,13 @@ function init() {
 
     // --- Google Maps 3D Tiles ---
     try {
-        console.log("Initializing MapTiles...");
-        // Use the imported default export
-        mapTiles = new MapTiles(MAPS_API_KEY);
+        console.log("Initializing MapTiles using namespace import...");
+        // Check if the MapTiles class exists on the imported namespace
+        if (!GoogleMapsThree || !GoogleMapsThree.MapTiles) {
+             throw new Error('MapTiles class not found in the imported @googlemaps/three module.');
+        }
+        // CORRECTED: Instantiate using the namespace
+        mapTiles = new GoogleMapsThree.MapTiles(MAPS_API_KEY);
         mapTiles.mesh.name = "MapTilesMesh";
 
         const LATITUDE = 48.8584; // Eiffel Tower
@@ -110,7 +114,6 @@ function init() {
     } catch (mapError) {
         console.error("Error initializing or setting MapTiles:", mapError);
         displayError("Map Tiles Error: " + mapError.message + ". Check API Key, enabled API, and billing status in Google Cloud.");
-        // Optionally disable map-dependent features if loading fails
         mapTiles = null; // Ensure mapTiles is null if init failed
     }
 
