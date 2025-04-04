@@ -2,8 +2,8 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
-// Ensure this import matches the key in the importmap
-import { MapTiles } from '@googlemaps/three';
+// CORRECTED: Use default import for MapTiles
+import MapTiles from '@googlemaps/three';
 
 // -----------------------------------------------------------------------------
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!! SECURITY WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -93,6 +93,7 @@ function init() {
     // --- Google Maps 3D Tiles ---
     try {
         console.log("Initializing MapTiles...");
+        // Use the imported default export
         mapTiles = new MapTiles(MAPS_API_KEY);
         mapTiles.mesh.name = "MapTilesMesh";
 
