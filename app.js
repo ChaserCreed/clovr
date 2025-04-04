@@ -6,10 +6,14 @@ import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerM
 import { MapTiles } from '@googlemaps/three';
 
 // -----------------------------------------------------------------------------
-// IMPORTANT: PASTE YOUR GOOGLE MAPS API KEY HERE!
-// ***DOUBLE CHECK THIS KEY IS CORRECT AND HAS Map Tiles API ENABLED***
-// -----------------------------------------------------------------------------
-const MAPS_API_KEY = "AIzaSyA5FhS5LMbAbhI0tYHt3fZev_PS0YCiVFE"; // <--- PASTE YOUR KEY HERE
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!! SECURITY WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// PASTING API KEYS DIRECTLY INTO CLIENT-SIDE CODE IS EXTREMELY INSECURE
+// ESPECIALLY FOR PUBLIC SITES LIKE GITHUB PAGES.
+// ANYONE CAN VIEW THE SOURCE AND STEAL YOUR KEY, POTENTIALLY INCURRING COSTS.
+// DELETE OR REGENERATE THIS KEY AND USE A NEW, RESTRICTED KEY.
+// RESTRICT THE NEW KEY BY HTTP REFERRER (your github pages url) and API (Map Tiles API).
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+const MAPS_API_KEY = "AIzaSyA5FhS5LMbAbhI0tYHt3fZev_PS0YCiVFE"; // <-- YOUR KEY (INSECURE - REPLACE)
 // -----------------------------------------------------------------------------
 
 // --- Configuration ---
@@ -35,19 +39,18 @@ const playerPositionHelper = new THREE.Object3D(); // Player rig base
 let groundRaycaster;
 const downVector = new THREE.Vector3(0, -1, 0);
 
-// Check for API Key and initialize
+// Check for API Key - This check is less critical now it's hardcoded, but good practice
 if (!MAPS_API_KEY) {
-    console.error("API Key is missing. Please set MAPS_API_KEY in app.js");
+    console.error("API Key is missing. Although hardcoded, it seems empty.");
+    displayError("API Key constant is empty in app.js");
     const promptElement = document.getElementById('api-key-prompt');
-    if (promptElement) promptElement.style.display = 'block';
-    // Stop execution if key is missing
-    // throw new Error("Google Maps API Key is required.");
+    if (promptElement) promptElement.style.backgroundColor = 'red'; // Make prompt red if key missing
 } else {
     document.addEventListener('DOMContentLoaded', () => {
         console.log("DOM Content Loaded");
-        // Hide API prompt if key is present
+        // Show the API key warning prompt regardless
         const promptElement = document.getElementById('api-key-prompt');
-        if (promptElement) promptElement.style.display = 'none';
+        if (promptElement) promptElement.style.display = 'block';
 
         try {
             init();
@@ -67,18 +70,15 @@ function init() {
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB);
-    // Set scene UP direction (important for some calculations)
     scene.up.set(0, 1, 0);
     console.log("Scene created");
 
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, CAMERA_FAR_PLANE);
-    camera.position.set(0, playerHeight, 0); // Position camera relative to the player helper base
+    camera.position.set(0, playerHeight, 0);
     console.log("Camera created");
 
-    // Player rig setup
-    playerPositionHelper.add(camera); // Attach camera to the moving helper
-    // Initial position will be set relative to map center later if map loads
-    playerPositionHelper.position.set(0, 100, 5); // Start higher up, slightly back
+    playerPositionHelper.add(camera);
+    playerPositionHelper.position.set(0, 100, 5); // Start higher up
     scene.add(playerPositionHelper);
     console.log("Player helper added to scene");
 
@@ -91,20 +91,27 @@ function init() {
     console.log("Lighting added");
 
     // --- Google Maps 3D Tiles ---
-    // This section only runs if API key is provided
-    mapTiles = new MapTiles(MAPS_API_KEY);
-    mapTiles.mesh.name = "MapTilesMesh";
+    try {
+        console.log("Initializing MapTiles...");
+        mapTiles = new MapTiles(MAPS_API_KEY);
+        mapTiles.mesh.name = "MapTilesMesh";
 
-    const LATITUDE = 48.8584; // Eiffel Tower
-    const LONGITUDE = 2.2945;
-    mapTiles.setCoordinates(LATITUDE, LONGITUDE);
-    console.log(`Map Tiles centering at Lat: ${LATITUDE}, Lon: ${LONGITUDE}`);
+        const LATITUDE = 48.8584; // Eiffel Tower
+        const LONGITUDE = 2.2945;
+        mapTiles.setCoordinates(LATITUDE, LONGITUDE);
+        console.log(`Map Tiles centering at Lat: ${LATITUDE}, Lon: ${LONGITUDE}`);
 
-    // Set player start position relative to map center (which is at world 0,0,0)
-    playerPositionHelper.position.set(0, playerHeight + 20, 15); // Start ~20m above ground, 15m back
+        playerPositionHelper.position.set(0, playerHeight + 20, 15); // Start ~20m above ground, 15m back
 
-    scene.add(mapTiles.mesh);
-    console.log("Map Tiles added to scene");
+        scene.add(mapTiles.mesh);
+        console.log("Map Tiles added to scene");
+
+    } catch (mapError) {
+        console.error("Error initializing or setting MapTiles:", mapError);
+        displayError("Map Tiles Error: " + mapError.message + ". Check API Key, enabled API, and billing status in Google Cloud.");
+        // Optionally disable map-dependent features if loading fails
+        mapTiles = null; // Ensure mapTiles is null if init failed
+    }
 
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -140,28 +147,27 @@ function init() {
     controller1.name = "ControllerLeft";
     controller1.addEventListener('connected', (event) => handleControllerConnection(controller1, event));
     controller1.addEventListener('disconnected', () => handleControllerDisconnection(controller1));
-    playerPositionHelper.add(controller1); // Add to player rig
+    playerPositionHelper.add(controller1);
 
     controllerGrip1 = renderer.xr.getControllerGrip(0);
     controllerGrip1.name = "ControllerGripLeft";
-    playerPositionHelper.add(controllerGrip1); // Add to player rig
+    playerPositionHelper.add(controllerGrip1);
 
     // Controller 2 (Right)
     controller2 = renderer.xr.getController(1);
     controller2.name = "ControllerRight";
     controller2.addEventListener('connected', (event) => handleControllerConnection(controller2, event));
     controller2.addEventListener('disconnected', () => handleControllerDisconnection(controller2));
-    playerPositionHelper.add(controller2); // Add to player rig
+    playerPositionHelper.add(controller2);
 
     controllerGrip2 = renderer.xr.getControllerGrip(1);
     controllerGrip2.name = "ControllerGripRight";
-    playerPositionHelper.add(controllerGrip2); // Add to player rig
+    playerPositionHelper.add(controllerGrip2);
 
     console.log("Controllers setup, waiting for connection...");
 
     // Ground detection Raycaster
     groundRaycaster = new THREE.Raycaster();
-    // Raycaster setup moved to update loop for clarity, using player base position
 
     window.addEventListener('resize', onWindowResize);
     console.log("Event listeners added");
@@ -175,8 +181,9 @@ function handleControllerConnection(controller, event) {
 
     if (grip) {
         console.log(`Attaching model to ${handedness} grip`);
-        removeControllerModel(grip); // Clean up previous model if any
+        removeControllerModel(grip);
         const model = controllerModelFactory.createControllerModel(grip);
+        // Handle potential errors during model creation/loading if needed
         model.name = `ControllerModel_${handedness}`;
         grip.add(model);
     } else {
@@ -225,31 +232,26 @@ function handleControllerInput(controller, delta) {
         const stickY = gamepad.axes[3];
         const deadzone = 0.1;
 
-        // Get camera's horizontal rotation
         const cameraQuaternion = new THREE.Quaternion();
-        camera.getWorldQuaternion(cameraQuaternion); // Get world rotation of camera
+        camera.getWorldQuaternion(cameraQuaternion);
 
-        // Create movement vector based on stick input (forward/backward, left/right)
-        // Note: Stick Y is often inverted (up is negative)
-        const move = new THREE.Vector3(stickX, 0, stickY); // Z is forward/back
+        const move = new THREE.Vector3(stickX, 0, stickY); // Z is forward/back relative to stick
 
-        // Apply deadzone
         if (move.lengthSq() < deadzone * deadzone) {
             move.set(0, 0, 0);
+        } else {
+             // Apply camera rotation (horizontal only) to the movement vector
+            const cameraEuler = new THREE.Euler().setFromQuaternion(cameraQuaternion, 'YXZ');
+            cameraEuler.x = 0; // Zero out pitch
+            cameraEuler.z = 0; // Zero out roll
+            move.applyEuler(cameraEuler);
         }
 
-        // Rotate movement vector by camera's horizontal rotation only
-        const cameraEuler = new THREE.Euler().setFromQuaternion(cameraQuaternion, 'YXZ'); // Use YXZ order
-        cameraEuler.x = 0; // Ignore pitch
-        cameraEuler.z = 0; // Ignore roll
-        move.applyEuler(cameraEuler); // Rotate the move vector
-
-        // Apply movement speed to player velocity
         playerVelocity.x = move.x * MOVEMENT_SPEED;
         playerVelocity.z = move.z * MOVEMENT_SPEED;
 
     } else if (handedness === 'left') {
-        // No stick input or controller doesn't have enough axes, stop horizontal movement
+        // Ensure velocity stops if stick is centered or controller has no stick
         playerVelocity.x = 0;
         playerVelocity.z = 0;
     }
@@ -274,48 +276,62 @@ function update(delta, xrFrame) {
     handleControllerInput(controller2, delta);
 
     // Apply Gravity
-    if (isJumping) { // Only apply gravity if in the air
+    if (isJumping) {
         playerVelocity.y += GRAVITY * delta;
     }
 
     // --- Ground Collision ---
     let groundDetected = false;
-    if (mapTiles && mapTiles.mesh && mapTiles.mesh.children.length > 0) { // Ensure map mesh has loaded children
-        const rayOrigin = playerPositionHelper.position; // Ray starts from player base
+    // Check mapTiles exists AND has successfully loaded children before raycasting
+    if (mapTiles && mapTiles.mesh && mapTiles.mesh.children.length > 0) {
+        const rayOrigin = playerPositionHelper.position;
         groundRaycaster.set(rayOrigin, downVector);
-        groundRaycaster.far = playerHeight + Math.abs(playerVelocity.y * delta) + 0.1; // Check distance needed + buffer
+        // Adjust ray length based on expected movement + buffer
+        groundRaycaster.far = playerHeight + Math.max(0.1, Math.abs(playerVelocity.y * delta * 1.1));
 
-        const intersects = groundRaycaster.intersectObject(mapTiles.mesh, true);
+        try {
+             const intersects = groundRaycaster.intersectObject(mapTiles.mesh, true);
 
-        if (intersects.length > 0) {
-            const groundY = intersects[0].point.y;
-            const targetPlayerBaseY = groundY;
-
-            // Check if player is about to pass through the ground in this frame
-            if (playerPositionHelper.position.y + playerVelocity.y * delta <= targetPlayerBaseY + 0.01) {
-                 // Snap to ground if falling or moving very slowly downwards
-                 if (playerVelocity.y <= 0) {
-                    playerPositionHelper.position.y = targetPlayerBaseY;
-                    playerVelocity.y = 0;
-                    if(isJumping) console.log("Landed.");
-                    isJumping = false;
-                    groundDetected = true;
+             if (intersects.length > 0) {
+                 // Find highest intersection point (relevant if overlapping geometry exists)
+                 let highestIntersectY = -Infinity;
+                 for(const intersect of intersects){
+                     highestIntersectY = Math.max(highestIntersectY, intersect.point.y);
                  }
-            } else {
-                 // Player is above ground, ensure they are marked as jumping/falling
-                 isJumping = true;
-            }
-        } else {
-             // No ground detected immediately below
-             isJumping = true;
+                 const groundY = highestIntersectY;
+                 const targetPlayerBaseY = groundY;
+
+                 // Check if player is about to pass through the ground
+                 if (playerPositionHelper.position.y + playerVelocity.y * delta <= targetPlayerBaseY + 0.01) {
+                      if (playerVelocity.y <= 0) { // Only snap if moving downwards
+                         playerPositionHelper.position.y = targetPlayerBaseY;
+                         playerVelocity.y = 0;
+                         if(isJumping) console.log("Landed.");
+                         isJumping = false;
+                         groundDetected = true;
+                      }
+                 } else {
+                      // Player is above ground, ensure isJumping is true
+                      isJumping = true;
+                 }
+             } else {
+                  // No ground detected below
+                  isJumping = true;
+             }
+        } catch(raycastError){
+            console.warn("Raycasting error (potentially during map load/unload):", raycastError);
+            isJumping = true; // Assume airborne if raycast fails
         }
     } else {
         // No map tiles loaded or ready? Treat as airborne.
         isJumping = true;
+        // If mapTiles object exists but mesh has no children, log it occasionally
+        if (mapTiles && frameCount % 300 === 0) { // Log ~ every 5 secs
+             console.log("Waiting for map tiles mesh children to load...");
+        }
     }
 
     // --- Update Player Position ---
-    // Apply calculated velocity for this frame
     const deltaPosition = playerVelocity.clone().multiplyScalar(delta);
     playerPositionHelper.position.add(deltaPosition);
 
@@ -330,22 +346,23 @@ function update(delta, xrFrame) {
 
     // Update Map Tiles LOD
     if (mapTiles) {
-        const cameraWorldPosition = new THREE.Vector3();
-        camera.getWorldPosition(cameraWorldPosition);
-        mapTiles.update(cameraWorldPosition);
+        try {
+             const cameraWorldPosition = new THREE.Vector3();
+             camera.getWorldPosition(cameraWorldPosition);
+             mapTiles.update(cameraWorldPosition);
+        } catch (mapUpdateError){
+             console.warn("Error during mapTiles.update():", mapUpdateError);
+             // Potentially related to map data loading issues
+        }
     }
 
-    // Logging (Reduced Frequency)
-    if (frameCount % 180 === 0) { // Log ~ every 3 seconds at 60fps
+    // Logging
+    if (frameCount % 180 === 0) {
         console.log(`Player Pos: X=${playerPositionHelper.position.x.toFixed(2)}, Y=${playerPositionHelper.position.y.toFixed(2)}, Z=${playerPositionHelper.position.z.toFixed(2)}, VelY: ${playerVelocity.y.toFixed(2)}, Jumping: ${isJumping}`);
-        // Check if map tiles mesh has children (indicates loading)
-        if (mapTiles && mapTiles.mesh) {
-            console.log(`Map Tiles Mesh Children: ${mapTiles.mesh.children.length}`);
-        }
     }
 }
 
-let frameCount = 0; // Keep track of frames for logging
+let frameCount = 0;
 
 // --- Animation Loop ---
 function animate() {
@@ -354,21 +371,29 @@ function animate() {
 
 function render(timestamp, frame) {
     const delta = clock.getDelta();
-    const clampedDelta = Math.min(delta, 0.1); // Prevent large jumps
+    const clampedDelta = Math.min(delta, 0.1);
 
-    frameCount++; // Increment frame count
+    frameCount++;
 
-    // Run update logic (physics, input, map tiles)
-    update(clampedDelta, frame); // Pass frame if available (in XR)
+    // Run update logic
+    try {
+        update(clampedDelta, frame);
+    } catch (updateError) {
+         console.error("Error during update():", updateError);
+         displayError("Update Error: " + updateError.message + '\n' + updateError.stack);
+         renderer.setAnimationLoop(null); // Stop the loop on critical update error
+         return; // Don't try to render
+    }
+
 
     // Render the scene
     if (renderer && scene && camera) {
         try {
              renderer.render(scene, camera);
         } catch(renderError){
-             console.error("Error during render:", renderError);
+             console.error("Error during render():", renderError);
              displayError("Render Error: " + renderError.message);
-             // Optionally stop the loop if render fails catastrophically
+             // Potentially stop the loop if render fails catastrophically
              // renderer.setAnimationLoop(null);
         }
     }
@@ -377,12 +402,12 @@ function render(timestamp, frame) {
 // --- Utility Functions ---
 function displayError(message) {
     let errorDiv = document.getElementById('runtime-error');
-    if (errorDiv) { // Check if div exists
+    if (errorDiv) {
         errorDiv.textContent = message;
-        errorDiv.style.display = 'block'; // Make sure it's visible
+        errorDiv.style.display = 'block';
+        console.error("DISPLAYED ERROR:", message); // Also log it
     } else {
-        // Fallback if div isn't in HTML for some reason
-        console.error("RUNTIME ERROR:", message);
+        console.error("RUNTIME ERROR (div not found):", message);
         alert("Runtime Error (check console): " + message.substring(0, 100) + "...");
     }
 }
