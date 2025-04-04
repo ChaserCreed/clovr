@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Simple WebXR Scene (Quest 3)</title>
+    <title>WebXR Forest Experience (Quest 3)</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #111; }
+        body { margin: 0; overflow: hidden; background-color: #000; }
         canvas { display: block; }
         #vr-button-container {
             position: absolute;
@@ -14,12 +14,28 @@
             transform: translateX(-50%);
             z-index: 999;
         }
+        /* Simple overlay for instructions or state */
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            font-family: sans-serif;
+            font-size: 14px;
+            z-index: 1000;
+            display: none; /* Initially hidden */
+         }
     </style>
 </head>
 <body>
+    <!-- Info display for user -->
+    <div id="info">Loading...</div>
+    <!-- Container for VR Button -->
     <div id="vr-button-container"></div>
 
-    <!-- Import Map using jsDelivr (Recommended) -->
+    <!-- Import Map (using jsDelivr) -->
     <script type="importmap">
     {
         "imports": {
