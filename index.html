@@ -25,6 +25,22 @@
             display: none; /* Hidden by default, shown by JS if key is missing */
         }
         #api-key-prompt a { color: cyan; }
+         /* Style for runtime errors */
+        #runtime-error {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: red;
+            background-color: white;
+            padding: 10px;
+            z-index: 1000;
+            font-family: monospace;
+            max-height: 150px;
+            overflow-y: scroll;
+            white-space: pre-wrap;
+            display: none; /* Hide initially */
+             border: 1px solid black;
+        }
     </style>
 </head>
 <body>
@@ -36,6 +52,9 @@
         <p><a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank" rel="noopener noreferrer">Get an API Key</a> | <a href="https://console.cloud.google.com/google/maps-apis/api-list" target="_blank" rel="noopener noreferrer">Enable APIs</a></p>
         <p><i>Note: The Map Tiles API is a paid service beyond the free tier.</i></p>
     </div>
+
+    <!-- Container for runtime errors -->
+    <div id="runtime-error"></div>
 
     <div id="vr-button-container"></div>
 
