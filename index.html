@@ -14,16 +14,18 @@
             transform: translateX(-50%);
             z-index: 999;
         }
-        #api-key-prompt {
+        #api-key-prompt { /* Keep this even if key is embedded, as a reminder */
             position: absolute;
             top: 10px;
             left: 10px;
             background-color: rgba(0,0,0,0.7);
             padding: 15px;
             border-radius: 5px;
-            z-index: 1000; /* Ensure it's above canvas */
-            display: none; /* Hidden by default, shown by JS if key is missing */
+            z-index: 1000;
+            /* display: none; */ /* Show it briefly or always as reminder */
+             border: 1px solid yellow; /* Highlight the warning */
         }
+        #api-key-prompt strong { color: yellow; }
         #api-key-prompt a { color: cyan; }
          /* Style for runtime errors */
         #runtime-error {
@@ -44,13 +46,13 @@
     </style>
 </head>
 <body>
-    <!-- Prompt for API Key -->
+    <!-- Prompt/Warning for API Key -->
     <div id="api-key-prompt">
-        <p><strong>Google Maps API Key Required</strong></p>
-        <p>Please paste your API key into the `MAPS_API_KEY` variable in `app.js`.</p>
-        <p>You need to enable the <strong>Map Tiles API</strong> in your Google Cloud project.</p>
-        <p><a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank" rel="noopener noreferrer">Get an API Key</a> | <a href="https://console.cloud.google.com/google/maps-apis/api-list" target="_blank" rel="noopener noreferrer">Enable APIs</a></p>
-        <p><i>Note: The Map Tiles API is a paid service beyond the free tier.</i></p>
+        <p><strong>⚠️ Security Warning!</strong></p>
+        <p>API Key is embedded in the code. This is insecure for public websites.</p>
+        <p>Please restrict your key in Google Cloud Console (HTTP Referrers & API).</p>
+        <p>Consider regenerating this key if it was exposed publicly.</p>
+        <p><a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">Manage API Keys</a></p>
     </div>
 
     <!-- Container for runtime errors -->
@@ -58,13 +60,13 @@
 
     <div id="vr-button-container"></div>
 
-    <!-- Import Map using jsDelivr -->
+    <!-- Import Map using jsDelivr (Corrected Path) -->
     <script type="importmap">
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
             "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/",
-            "@googlemaps/three": "https://cdn.jsdelivr.net/npm/@googlemaps/three@0.6.0/dist/index.min.js"
+            "@googlemaps/three": "https://cdn.jsdelivr.net/npm/@googlemaps/three@0.6.0/index.min.js"
         }
     }
     </script>
